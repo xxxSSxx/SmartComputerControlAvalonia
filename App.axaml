@@ -1,0 +1,29 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SmartComputerControlAvalonia.App"
+             RequestedThemeVariant="Default">
+
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+
+    <!-- Tray icon: usata su macOS e Linux. Su Windows viene nascosta a runtime
+         perche' usiamo NotifyIcon di WinForms per avere i balloon tip classici. -->
+    <TrayIcon.Icons>
+        <TrayIcons>
+            <TrayIcon
+                Icon="/Assets/scc-icon.ico"
+                ToolTipText="SmartComputerControl"
+                Clicked="OnTrayClicked">
+                <TrayIcon.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="Apri impostazioni" Click="OnShowSettings" />
+                        <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Esci" Click="OnExitClicked" />
+                    </NativeMenu>
+                </TrayIcon.Menu>
+            </TrayIcon>
+        </TrayIcons>
+    </TrayIcon.Icons>
+
+</Application>

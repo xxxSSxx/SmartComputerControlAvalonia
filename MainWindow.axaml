@@ -1,0 +1,53 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="500" d:DesignHeight="320"
+        x:Class="SmartComputerControlAvalonia.Views.MainWindow"
+        Title="SmartComputerControl"
+        Icon="/Assets/scc-icon.ico"
+        Width="520" Height="380"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen">
+
+    <StackPanel Margin="20" Spacing="14">
+
+        <TextBlock Text="SmartComputerControl"
+                   FontSize="20" FontWeight="Bold" />
+        <TextBlock Text="Spegnimento remoto via Dropbox / IFTTT"
+                   FontSize="12" Foreground="Gray" />
+
+        <Separator Margin="0,4" />
+
+        <!-- Cartella -->
+        <TextBlock Text="Cartella monitorata:" />
+        <Grid ColumnDefinitions="*,Auto">
+            <TextBox x:Name="CartellaBox" Grid.Column="0" IsReadOnly="True" />
+            <Button Content="Sfoglia..." Grid.Column="1" Margin="10,0,0,0" Click="OnBrowseClicked" />
+        </Grid>
+
+        <!-- Nome computer -->
+        <TextBlock Text="Nome computer (per ricevere comandi specifici):" />
+        <TextBox x:Name="NomeBox" TextChanged="OnNomeChanged" Watermark="es. Win11 oppure MacSe" />
+
+        <!-- Checkbox -->
+        <CheckBox x:Name="PredefinitoCheck"
+                  Content="Computer predefinito (accetta anche il comando 'google')"
+                  IsCheckedChanged="OnPredefinitoChanged" />
+
+        <CheckBox x:Name="AutoavvioCheck"
+                  Content="Avvia automaticamente con il sistema"
+                  IsCheckedChanged="OnAutoavvioChanged" />
+
+        <Separator Margin="0,4" />
+
+        <TextBlock FontSize="11" Foreground="Gray" TextWrapping="Wrap"
+                   Text="IFTTT crea un file .txt nella cartella monitorata. Il nome del file (es. Win11.txt) determina quale PC si spegne. Usa 'all.txt' per spegnere tutti, oppure 'google.txt' se questo PC è predefinito." />
+
+        <TextBlock x:Name="StatusLabel"
+                   Text="In esecuzione."
+                   FontSize="12" Foreground="Green" />
+
+    </StackPanel>
+
+</Window>
