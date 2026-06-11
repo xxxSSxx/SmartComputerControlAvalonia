@@ -128,13 +128,34 @@ public class NotificationService : IDisposable
     {
         try
         {
+            // notify-send: cerchiamo l'icona in vari path probabili
+            // (Assets accanto all'eseguibile, ico o png).
+            var baseDir = AppContext.BaseDirectory;
+            var iconCandidates = new[]
+            {
+                Path.Combine(baseDir, "Assets", "scc-icon.png"),
+                Path.Combine(baseDir, "Assets", "scc-icon.ico"),
+            };
+            string? iconPath = null;
+            foreach (var c in iconCandidates)
+            {
+                if (File.Exists(c)) { iconPath = c; break; }
+            }
+
             var psi = new ProcessStartInfo
             {
                 FileName = "notify-send",
-                ArgumentList = { "--app-name=SmartComputerControl", title, body },
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
+            psi.ArgumentList.Add("--app-name=SmartComputerControl");
+            if (iconPath != null)
+            {
+                psi.ArgumentList.Add($"--icon={iconPath}");
+            }
+            psi.ArgumentList.Add(title);
+            psi.ArgumentList.Add(body);
+
             Process.Start(psi);
         }
         catch (Exception ex)
