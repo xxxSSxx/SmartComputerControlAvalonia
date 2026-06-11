@@ -2,9 +2,6 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <!-- Multi-target: net10.0-windows per usare WinForms NotifyIcon su Windows,
-         net10.0 puro per Mac e Linux che usano osascript/notify-send. -->
-    <TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks>
     <Nullable>enable</Nullable>
     <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -13,6 +10,17 @@
     <AssemblyName>SmartComputerControl</AssemblyName>
     <!-- Icona embedded nell'eseguibile (visibile in Esplora Risorse + toast Windows) -->
     <ApplicationIcon>Assets\scc-icon.ico</ApplicationIcon>
+  </PropertyGroup>
+
+  <!-- TargetFrameworks condizionali per piattaforma:
+       - Su Windows: net10.0 e net10.0-windows (WinForms+NotifyIcon)
+       - Su Mac/Linux: solo net10.0 (notifiche via osascript / notify-send)
+       Questo evita l'errore NETSDK1100 quando compili su Mac/Linux. -->
+  <PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Windows`))' == 'true'">
+    <TargetFrameworks>net10.0;net10.0-windows</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$([MSBuild]::IsOSPlatform(`Windows`))' != 'true'">
+    <TargetFrameworks>net10.0</TargetFrameworks>
   </PropertyGroup>
 
   <!-- Solo per target Windows: abilitiamo WinForms per usare NotifyIcon con balloon nativi -->
