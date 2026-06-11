@@ -12,12 +12,13 @@
         Background="#1E1E2E">
 
     <Window.Styles>
-        <Style Selector="Button">
-            <Setter Property="Padding" Value="20,10" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="MinWidth" Value="120" />
-        </Style>
+		<Style Selector="Button">
+			<Setter Property="Padding" Value="20,10" />
+			<Setter Property="CornerRadius" Value="6" />
+			<Setter Property="FontWeight" Value="SemiBold" />
+			<Setter Property="MinWidth" Value="120" />
+			<Setter Property="HorizontalContentAlignment" Value="Center" />
+		</Style>
         <Style Selector="Button.danger">
             <Setter Property="Background" Value="#E53935" />
             <Setter Property="Foreground" Value="White" />
