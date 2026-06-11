@@ -106,22 +106,20 @@ public class NotificationService : IDisposable
 #endif
     }
 
+    private bool _macAuthRequested;
+
     private void ShowMacOS(string title, string body)
     {
         try
         {
-            var safeTitle = title.Replace("\\", "\\\\").Replace("\"", "\\\"");
-            var safeBody = body.Replace("\\", "\\\\").Replace("\"", "\\\"");
-            var script = $"display notification \"{safeBody}\" with title \"{safeTitle}\"";
-
-            var psi = new ProcessStartInfo
+            // Al primo invio, richiede il permesso (popup di sistema macOS).
+            // Funziona solo se l'app gira dentro un .app bundle.
+            if (!_macAuthRequested)
             {
-                FileName = "osascript",
-                ArgumentList = { "-e", script },
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            Process.Start(psi);
+                MacOSNotifications.RequestAuthorization();
+                _macAuthRequested = true;
+            }
+            MacOSNotifications.Show(title, body);
         }
         catch (Exception ex) { Console.WriteLine($"Errore macOS: {ex.Message}"); }
     }
