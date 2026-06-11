@@ -9,6 +9,10 @@ public class AppConfig
     public string Path { get; set; } = "";
     public string ComputerName { get; set; } = "";
     public bool Predefinito { get; set; } = false;
+    /// <summary>Se true, prima di spegnere mostra un dialog di conferma con countdown.</summary>
+    public bool MostraConferma { get; set; } = true;
+    /// <summary>Secondi di countdown prima dello spegnimento automatico.</summary>
+    public int SecondiConferma { get; set; } = 30;
 }
 
 public class ConfigService
@@ -47,6 +51,18 @@ public class ConfigService
     {
         get => _config.Predefinito;
         set => _config.Predefinito = value;
+    }
+
+    public bool MostraConferma
+    {
+        get => _config.MostraConferma;
+        set => _config.MostraConferma = value;
+    }
+
+    public int SecondiConferma
+    {
+        get => _config.SecondiConferma;
+        set => _config.SecondiConferma = value;
     }
 
     private AppConfig Load()

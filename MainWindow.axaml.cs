@@ -24,6 +24,8 @@ public partial class MainWindow : Window
         NomeBox.Text = App.Config.ComputerName;
         PredefinitoCheck.IsChecked = App.Config.Predefinito;
         AutoavvioCheck.IsChecked = App.Autostart.IsEnabled();
+        ConfermaCheck.IsChecked = App.Config.MostraConferma;
+        SecondiBox.Value = App.Config.SecondiConferma;
     }
 
     private async void OnBrowseClicked(object? sender, RoutedEventArgs e)
@@ -72,5 +74,19 @@ public partial class MainWindow : Window
             App.Autostart.Enable();
         else
             App.Autostart.Disable();
+    }
+
+    private void OnConfermaChanged(object? sender, RoutedEventArgs e)
+    {
+        if (_initializing) return;
+        App.Config.MostraConferma = ConfermaCheck.IsChecked ?? false;
+        App.Config.Save();
+    }
+
+    private void OnSecondiChanged(object? sender, NumericUpDownValueChangedEventArgs e)
+    {
+        if (_initializing) return;
+        App.Config.SecondiConferma = (int)(e.NewValue ?? 30);
+        App.Config.Save();
     }
 }

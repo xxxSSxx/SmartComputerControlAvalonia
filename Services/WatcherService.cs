@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -12,6 +13,9 @@ public class WatcherService
     private FileSystemWatcher? _watcher;
     private System.Timers.Timer? _pollTimer;
     private DateTime _avvio = DateTime.Now;
+    private readonly object _lock = new();
+    private bool _shutdownPending;
+    private readonly HashSet<string> _filesInProgress = new(StringComparer.OrdinalIgnoreCase);
 
     public WatcherService(ConfigService config, ShutdownService shutdown, NotificationService notifications)
     {
@@ -105,13 +109,33 @@ public class WatcherService
     {
         if (!File.Exists(filex)) return;
 
+        // Guard contro doppia esecuzione (FileSystemWatcher + polling timer
+        // possono scatenarsi entrambi sullo stesso file)
+        lock (_lock)
+        {
+            if (_shutdownPending) return;
+            if (!_filesInProgress.Add(filex)) return;
+        }
+
+        try
+        {
+            ProcessaFile(filex);
+        }
+        finally
+        {
+            lock (_lock)
+            {
+                _filesInProgress.Remove(filex);
+            }
+        }
+    }
+
+    private void ProcessaFile(string filex)
+    {
+        if (!File.Exists(filex)) return;
+
         // NUOVA LOGICA: il target di spegnimento viene dal NOME del file
         // (senza estensione), non dal contenuto.
-        // Esempi:
-        //   "Win11.txt"   → target = "Win11"
-        //   "MacSe.acc"   → target = "MacSe"
-        //   "all.txt"     → target = "all"
-        //   "google.txt"  → target = "google"
         var target = Path.GetFileNameWithoutExtension(filex);
         var myName = _config.ComputerName?.Trim() ?? "";
 
@@ -123,9 +147,6 @@ public class WatcherService
 
         if (!match)
         {
-            // Non e' un comando per me. Lascio stare il file: forse e' per un
-            // altro PC e Dropbox lo sincronizzera' altrove. Non lo cancello
-            // perche' potrei cancellarlo prima che l'altro PC lo legga.
             return;
         }
 
@@ -133,19 +154,52 @@ public class WatcherService
         _notifications.Show("SmartComputerControl",
             $"Comando ricevuto per '{target}'. Verifico...");
 
-        // Verifica che il file sia "fresco" (post-avvio del programma)
         try
         {
             var fileWriteDate = File.GetLastWriteTime(filex);
             if (_avvio < fileWriteDate)
             {
-                _notifications.Show("SmartComputerControl",
-                    "Spegnimento in corso...");
-                _shutdown.Spegni(filex);
+                // Cancella subito il file per evitare ri-attivazioni
+                try { File.Delete(filex); } catch { }
+
+                // Da qui in poi, fino a chiusura del dialog, blocchiamo
+                // altri possibili match (dialog non duplicato).
+                lock (_lock) { _shutdownPending = true; }
+
+                if (_config.MostraConferma)
+                {
+                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                    {
+                        var dlg = new Views.ShutdownConfirmWindow(_config.SecondiConferma);
+                        dlg.Closed += (s, e) =>
+                        {
+                            if (dlg.ShouldShutdown)
+                            {
+                                _notifications.Show("SmartComputerControl",
+                                    "Spegnimento in corso...");
+                                _shutdown.Spegni(filex);
+                            }
+                            else
+                            {
+                                _notifications.Show("SmartComputerControl",
+                                    "Spegnimento annullato dall'utente.");
+                                // L'utente ha annullato: rimuoviamo il pending
+                                // cosi' un futuro file puo' attivare un nuovo dialog.
+                                lock (_lock) { _shutdownPending = false; }
+                            }
+                        };
+                        dlg.Show();
+                    });
+                }
+                else
+                {
+                    _notifications.Show("SmartComputerControl",
+                        "Spegnimento in corso...");
+                    _shutdown.Spegni(filex);
+                }
             }
             else
             {
-                // File vecchio: cancellalo senza spegnere (es. rimasto da prima)
                 File.Delete(filex);
                 _notifications.Show("SmartComputerControl",
                     "Comando obsoleto ignorato (file precedente all'avvio).");
