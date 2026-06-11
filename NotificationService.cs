@@ -110,8 +110,6 @@ public class NotificationService : IDisposable
     {
         try
         {
-            // Sanitize per AppleScript: gli apici doppi vanno escapati
-            // come backslash-virgolette dentro lo script.
             var safeTitle = title.Replace("\\", "\\\\").Replace("\"", "\\\"");
             var safeBody = body.Replace("\\", "\\\\").Replace("\"", "\\\"");
             var script = $"display notification \"{safeBody}\" with title \"{safeTitle}\"";
@@ -119,8 +117,6 @@ public class NotificationService : IDisposable
             var psi = new ProcessStartInfo
             {
                 FileName = "osascript",
-                // ArgumentList passa gli argomenti senza shell parsing,
-                // cosi' niente problemi con apici/spazi.
                 ArgumentList = { "-e", script },
                 UseShellExecute = false,
                 CreateNoWindow = true
