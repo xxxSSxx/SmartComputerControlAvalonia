@@ -94,8 +94,49 @@ public class AutostartService
     {
         try
         {
+            // Su Mac, exePath punta all'eseguibile interno del bundle:
+            //   /Applications/SmartComputerControl.app/Contents/MacOS/SmartComputerControl
+            // Avviarlo direttamente NON e' come avviare l'app bundle: macOS perde
+            // il contesto del bundle (icona, Info.plist, permessi notifiche).
+            // Soluzione: risaliamo al .app e usiamo 'open -a' per avviarlo come app vera.
+            string? appBundlePath = null;
+            var idx = exePath.IndexOf(".app/", StringComparison.Ordinal);
+            if (idx >= 0)
+            {
+                appBundlePath = exePath.Substring(0, idx + 4); // include ".app"
+            }
+
             Directory.CreateDirectory(Path.GetDirectoryName(MacAgentPath)!);
-            var plist = $"""
+
+            string plist;
+            if (appBundlePath != null)
+            {
+                // Caso normale: app installata come .app bundle (es. in /Applications)
+                // Usiamo 'open' che avvia l'app rispettando il bundle.
+                plist = $"""
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.sergio.smartcomputercontrol</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/open</string>
+        <string>{appBundlePath}</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>
+""";
+            }
+            else
+            {
+                // Fallback: app lanciata in dev (dotnet run) — usa l'eseguibile diretto.
+                // Probabilmente non serve davvero (non si autoavvia un'app in debug),
+                // ma manteniamo il caso per compatibilita'.
+                plist = $"""
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -111,6 +152,8 @@ public class AutostartService
 </dict>
 </plist>
 """;
+            }
+
             File.WriteAllText(MacAgentPath, plist);
             Process.Start("launchctl", $"load {MacAgentPath}");
         }
