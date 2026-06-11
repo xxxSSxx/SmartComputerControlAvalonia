@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleName</key>
+    <string>SmartComputerControl</string>
+    <key>CFBundleDisplayName</key>
+    <string>SmartComputerControl</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.sergio.smartcomputercontrol</string>
+    <key>CFBundleVersion</key>
+    <string>1.0.0</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleExecutable</key>
+    <string>SmartComputerControl</string>
+    <key>CFBundleIconFile</key>
+    <string>scc-icon</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>11.0</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <!-- LSUIElement = true → app "agent" che gira solo nella menu bar,
+         senza icona nel Dock e senza voce in App Switcher. -->
+    <key>LSUIElement</key>
+    <true/>
+    <!-- NSPrincipalClass richiesto da Avalonia su macOS -->
+    <key>NSPrincipalClass</key>
+    <string>NSApplication</string>
+    <!-- Categoria App Store (anche se non lo distribuiremo lì) -->
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <!-- Permessi: dichiariamo intenzione di usare AppleScript -->
+    <key>NSAppleEventsUsageDescription</key>
+    <string>SmartComputerControl usa AppleScript per spegnere il Mac quando ricevi il comando da remoto.</string>
+</dict>
+</plist>
