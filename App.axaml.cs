@@ -26,13 +26,6 @@ public partial class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
-        // Su macOS, nascondi l'icona dell'app dal Dock e dal Cmd+Tab.
-        // L'app vive solo nella menu bar (come fanno Bartender, Magnet, ecc.)
-        if (OperatingSystem.IsMacOS())
-        {
-            MacOSNotifications.SetAccessoryActivationPolicy();
-        }
-
         // Inizializza i servizi
         Config = new ConfigService();
         Shutdown = new ShutdownService();
