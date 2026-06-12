@@ -9,15 +9,15 @@
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "📦 Building SmartComputerControl per Windows x64..." -ForegroundColor Cyan
+Write-Host "[BUILD] SmartComputerControl per Windows x64..." -ForegroundColor Cyan
 
 # 1. Pulisci output precedenti
-Write-Host "→ Pulizia..." -ForegroundColor Yellow
+Write-Host "[1/4] Pulizia output precedenti..." -ForegroundColor Yellow
 if (Test-Path "publish-win-x64") { Remove-Item "publish-win-x64" -Recurse -Force }
 if (Test-Path "installer-output") { Remove-Item "installer-output" -Recurse -Force }
 
 # 2. dotnet publish (self-contained, single file)
-Write-Host "→ Pubblicazione .NET..." -ForegroundColor Yellow
+Write-Host "[2/4] Pubblicazione .NET (potrebbe richiedere qualche minuto)..." -ForegroundColor Yellow
 dotnet publish -f net10.0-windows -c Release -r win-x64 `
     --self-contained true `
     -p:PublishSingleFile=true `
@@ -25,11 +25,12 @@ dotnet publish -f net10.0-windows -c Release -r win-x64 `
     -o publish-win-x64
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Publish fallita" -ForegroundColor Red
+    Write-Host "ERRORE: Publish fallita" -ForegroundColor Red
     exit 1
 }
 
 # 3. Trova l'eseguibile di Inno Setup
+Write-Host "[3/4] Ricerca Inno Setup..." -ForegroundColor Yellow
 $innoSetup = $null
 $candidates = @(
     "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
@@ -41,17 +42,19 @@ foreach ($c in $candidates) {
 }
 
 if (-not $innoSetup) {
-    Write-Host "❌ Inno Setup non trovato!" -ForegroundColor Red
-    Write-Host "   Scarica e installa da: https://jrsoftware.org/isdl.php" -ForegroundColor Yellow
+    Write-Host "ERRORE: Inno Setup non trovato!" -ForegroundColor Red
+    Write-Host "  Scarica e installa da: https://jrsoftware.org/isdl.php" -ForegroundColor Yellow
     exit 1
 }
 
+Write-Host "  Trovato: $innoSetup" -ForegroundColor Green
+
 # 4. Lancia Inno Setup Compiler
-Write-Host "→ Generazione installer con Inno Setup..." -ForegroundColor Yellow
+Write-Host "[4/4] Generazione installer con Inno Setup..." -ForegroundColor Yellow
 & $innoSetup "installer.iss"
 
 if ($LASTEXITCODE -ne 0) {
-    Write-Host "❌ Inno Setup fallito" -ForegroundColor Red
+    Write-Host "ERRORE: Inno Setup fallito" -ForegroundColor Red
     exit 1
 }
 
@@ -60,10 +63,13 @@ $installerFile = Get-ChildItem "installer-output\*.exe" | Select-Object -First 1
 if ($installerFile) {
     $sizeMB = [math]::Round($installerFile.Length / 1MB, 1)
     Write-Host ""
-    Write-Host "✅ Installer creato: $($installerFile.FullName)" -ForegroundColor Green
-    Write-Host "   Dimensione: ${sizeMB} MB" -ForegroundColor Green
+    Write-Host "============================================================" -ForegroundColor Green
+    Write-Host "OK Installer creato:" -ForegroundColor Green
+    Write-Host "   $($installerFile.FullName)" -ForegroundColor White
+    Write-Host "   Dimensione: ${sizeMB} MB" -ForegroundColor White
+    Write-Host "============================================================" -ForegroundColor Green
     Write-Host ""
     Write-Host "Puoi caricarlo sul tuo sito web e distribuirlo agli amici." -ForegroundColor Cyan
 } else {
-    Write-Host "⚠️  Build completata ma installer non trovato in installer-output\" -ForegroundColor Yellow
+    Write-Host "AVVISO: Build completata ma installer non trovato in installer-output\" -ForegroundColor Yellow
 }
