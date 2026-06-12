@@ -59,10 +59,20 @@ public class CommandService
     /// <summary>
     /// Parsea il contenuto di un file .txt e restituisce il comando.
     /// File vuoto = shutdown (retrocompatibilita').
+    /// Tollera virgolette, BOM, spazi, e altri caratteri di "rumore"
+    /// che possono apparire a seconda della shell che ha creato il file.
     /// </summary>
     public static ParsedCommand Parse(string content)
     {
-        var raw = (content ?? "").Trim().ToLowerInvariant();
+        var raw = (content ?? "").Trim();
+
+        // Rimuove BOM UTF-8/UTF-16 (alcune shell Windows lo aggiungono)
+        if (raw.Length > 0 && (raw[0] == '\uFEFF' || raw[0] == '\uFFFE'))
+            raw = raw.Substring(1);
+
+        // Rimuove virgolette singole o doppie agli estremi
+        // (es. echo "shutdown" su CMD scrive 'shutdown' tra virgolette)
+        raw = raw.Trim('"', '\'', ' ', '\t', '\r', '\n').ToLowerInvariant();
 
         // Vuoto o "shutdown" → shutdown
         if (string.IsNullOrEmpty(raw) || raw == "shutdown")
@@ -88,20 +98,24 @@ public class CommandService
     }
 
     /// <summary>
-    /// Esegue il comando sul sistema.
+    /// Esegue il comando sul sistema. Se DebugMode = true, log e basta.
     /// </summary>
     public void Execute(ParsedCommand cmd)
     {
+        if (DebugMode)
+        {
+            Console.WriteLine($"[DEBUG] Comando '{cmd.DisplayName}' simulato (DebugMode ON).");
+            return;
+        }
+
         switch (cmd.Type)
         {
             case CommandType.Shutdown:
-                if (!DebugMode) ExecuteShutdown();
-                else Console.WriteLine("[DEBUG] Spegnimento simulato.");
+                ExecuteShutdown();
                 break;
 
             case CommandType.Restart:
-                if (!DebugMode) ExecuteRestart();
-                else Console.WriteLine("[DEBUG] Riavvio simulato.");
+                ExecuteRestart();
                 break;
 
             case CommandType.Sleep:

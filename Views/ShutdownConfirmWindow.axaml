@@ -60,7 +60,8 @@
                            Text="Spegnimento computer"
                            FontSize="20" FontWeight="Bold"
                            Foreground="White" />
-                <TextBlock Text="Comando di spegnimento remoto ricevuto"
+                <TextBlock x:Name="HeaderSubtitle"
+                           Text="Comando di spegnimento remoto ricevuto"
                            FontSize="13" Foreground="#A0A0B0"
                            Margin="0,2,0,0" />
             </StackPanel>
@@ -84,7 +85,8 @@
                          Height="8"
                          Background="#2A2A3A"
                          Foreground="#E53935" />
-            <TextBlock Text="Premi Annulla per impedire lo spegnimento"
+            <TextBlock x:Name="HintText"
+                       Text="Premi Annulla per impedire lo spegnimento"
                        FontSize="11"
                        Foreground="#808090"
                        HorizontalAlignment="Center"

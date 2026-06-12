@@ -29,6 +29,7 @@ public partial class App : Application
         // Inizializza i servizi
         Config = new ConfigService();
         Commands = new CommandService();
+        Commands.DebugMode = Config.DebugMode;
         Notifications = new NotificationService();
         Watcher = new WatcherService(Config, Commands, Notifications);
         Autostart = new AutostartService();

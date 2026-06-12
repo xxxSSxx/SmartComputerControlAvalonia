@@ -29,12 +29,19 @@ public partial class ShutdownConfirmWindow : Window
         _secondsLeft = secondsBeforeShutdown;
         _actionName = cmd?.DisplayName ?? "Spegnimento";
 
+        var isRestart = cmd?.Type == Services.CommandType.Restart;
+        var actionLower = isRestart ? "riavvio" : "spegnimento";
+
         // Aggiorna le scritte del dialog in base al comando
         this.Title = $"{_actionName} in arrivo";
         if (this.FindControl<TextBlock>("HeaderTitle") is { } h)
             h.Text = _actionName;
+        if (this.FindControl<TextBlock>("HeaderSubtitle") is { } sub)
+            sub.Text = $"Comando di {actionLower} remoto ricevuto";
+        if (this.FindControl<TextBlock>("HintText") is { } hint)
+            hint.Text = $"Premi Annulla per impedire il {actionLower}";
         if (this.FindControl<Button>("ShutdownNowButton") is { } b)
-            b.Content = cmd?.Type == Services.CommandType.Restart ? "Riavvia subito" : "Spegni subito";
+            b.Content = isRestart ? "Riavvia subito" : "Spegni subito";
 
         CountdownBar.Maximum = _totalSeconds;
         CountdownBar.Value = _secondsLeft;

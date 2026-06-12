@@ -13,6 +13,8 @@ public class AppConfig
     public bool MostraConferma { get; set; } = true;
     /// <summary>Secondi di countdown prima dello spegnimento automatico.</summary>
     public int SecondiConferma { get; set; } = 30;
+    /// <summary>Se true, non esegue davvero i comandi (utile per test).</summary>
+    public bool DebugMode { get; set; } = false;
 }
 
 public class ConfigService
@@ -63,6 +65,12 @@ public class ConfigService
     {
         get => _config.SecondiConferma;
         set => _config.SecondiConferma = value;
+    }
+
+    public bool DebugMode
+    {
+        get => _config.DebugMode;
+        set => _config.DebugMode = value;
     }
 
     private AppConfig Load()

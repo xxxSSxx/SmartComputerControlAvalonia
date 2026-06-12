@@ -175,6 +175,7 @@ public class WatcherService
         }
 
         _notifications.Show("SmartComputerControl",
+            (_commands.DebugMode ? "🧪 [TEST] " : "") +
             $"Comando '{cmd.DisplayName}' ricevuto per '{target}'");
 
         try

@@ -26,6 +26,7 @@ public partial class MainWindow : Window
         AutoavvioCheck.IsChecked = App.Autostart.IsEnabled();
         ConfermaCheck.IsChecked = App.Config.MostraConferma;
         SecondiBox.Value = App.Config.SecondiConferma;
+        DebugCheck.IsChecked = App.Config.DebugMode;
     }
 
     private async void OnBrowseClicked(object? sender, RoutedEventArgs e)
@@ -88,5 +89,15 @@ public partial class MainWindow : Window
         if (_initializing) return;
         App.Config.SecondiConferma = (int)(e.NewValue ?? 30);
         App.Config.Save();
+    }
+
+    private void OnDebugChanged(object? sender, RoutedEventArgs e)
+    {
+        if (_initializing) return;
+        var debug = DebugCheck.IsChecked ?? false;
+        App.Config.DebugMode = debug;
+        App.Config.Save();
+        // Propaga immediatamente al CommandService
+        App.Commands.DebugMode = debug;
     }
 }

@@ -63,6 +63,10 @@
                       Content="Mostra conferma prima dello spegnimento"
                       IsCheckedChanged="OnConfermaChanged" />
 
+            <CheckBox x:Name="DebugCheck"
+                      Content="🧪 Modalità test (non esegue davvero i comandi)"
+                      IsCheckedChanged="OnDebugChanged" />
+
             <!-- Secondi di attesa -->
             <Grid ColumnDefinitions="Auto,*">
                 <TextBlock Grid.Column="0"
