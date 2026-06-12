@@ -46,8 +46,8 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 Name: "autostart"; Description: "Avvia automaticamente all'accensione del computer"; GroupDescription: "Opzioni:"; Flags: unchecked
 
 [Files]
-; Tutto il contenuto della publish folder
-Source: "publish-win-x64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Tutto il contenuto della publish folder (escluso .pdb che e' solo per debug)
+Source: "publish-win-x64\*"; DestDir: "{app}"; Excludes: "*.pdb"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Icons]
 Name: "{group}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -63,4 +63,4 @@ Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChang
 
 [UninstallRun]
 ; Killa il processo se in esecuzione prima di disinstallare
-Filename: "{cmd}"; Parameters: "/C taskkill /F /IM {#MyAppExeName}"; Flags: runhidden
+Filename: "{cmd}"; Parameters: "/C taskkill /F /IM {#MyAppExeName}"; RunOnceId: "KillApp"; Flags: runhidden
