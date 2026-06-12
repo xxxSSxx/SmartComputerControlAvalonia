@@ -118,6 +118,15 @@ public partial class App : Application
         _mainWindow.Closed += (s, e) =>
         {
             _mainWindow = null;
+
+            // Su Mac: quando l'utente chiude la finestra, Avalonia non torna
+            // automaticamente a modalita' "accessory" (resta il menu in alto
+            // "Avalonia Application" che blocca il riavvio del sistema).
+            // Forziamo il ritorno a .accessory.
+            if (OperatingSystem.IsMacOS())
+            {
+                MacOSNotifications.SetAccessoryActivationPolicy();
+            }
         };
         _mainWindow.Show();
     }
