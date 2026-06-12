@@ -128,19 +128,11 @@ public class NotificationService : IDisposable
     {
         try
         {
-            // notify-send: cerchiamo l'icona in vari path probabili
-            // (Assets accanto all'eseguibile, ico o png).
+            // notify-send su Linux accetta solo .png (.ico non funziona).
+            // Lo cerchiamo dentro Assets/ accanto all'eseguibile.
             var baseDir = AppContext.BaseDirectory;
-            var iconCandidates = new[]
-            {
-                Path.Combine(baseDir, "Assets", "scc-icon.png"),
-                Path.Combine(baseDir, "Assets", "scc-icon.ico"),
-            };
-            string? iconPath = null;
-            foreach (var c in iconCandidates)
-            {
-                if (File.Exists(c)) { iconPath = c; break; }
-            }
+            var iconPath = Path.Combine(baseDir, "Assets", "scc-icon.png");
+            if (!File.Exists(iconPath)) iconPath = null;
 
             var psi = new ProcessStartInfo
             {

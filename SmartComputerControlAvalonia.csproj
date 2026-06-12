@@ -35,6 +35,14 @@
     <None Include="Assets/scc-icon.ico" CopyToOutputDirectory="PreserveNewest">
       <Link>Assets\scc-icon.ico</Link>
     </None>
+    <!-- Copia anche il .png fisicamente, serve per notify-send su Linux -->
+    <None Include="Assets/scc-icon.png" CopyToOutputDirectory="PreserveNewest">
+      <Link>Assets\scc-icon.png</Link>
+    </None>
+    <!-- Copia anche il file .png fisicamente nell'output, serve per notify-send su Linux -->
+    <None Include="Assets/scc-icon.png" CopyToOutputDirectory="PreserveNewest">
+      <Link>Assets\scc-icon.png</Link>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
