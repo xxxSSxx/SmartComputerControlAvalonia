@@ -140,7 +140,11 @@ public class NotificationService : IDisposable
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-            psi.ArgumentList.Add("--app-name=SmartComputerControl");
+            // NB: non passiamo --app-name perche' Ubuntu 26.04+ con Wayland
+            // filtra le notifiche di "app-name" non registrate come .desktop
+            // valida, e cosi' non vengono mai mostrate (ne' nello storico).
+            // Senza --app-name la notifica appare e si comporta come
+            // "applicazione generica" dal punto di vista di GNOME.
             if (iconPath != null)
             {
                 psi.ArgumentList.Add($"--icon={iconPath}");
