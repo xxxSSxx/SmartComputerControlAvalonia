@@ -58,13 +58,82 @@ AUTOSTART_DIR="$HOME/.config/autostart"
 # Origine = cartella dove sta questo script
 SRC_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-echo "📦 Installo SmartComputerControl in $INSTALL_DIR..."
+echo "============================================================"
+echo "        SmartComputerControl - Installer Linux"
+echo "============================================================"
+echo ""
+
+# ===== 1. Rilevamento package manager =====
+PKG_MGR=""
+if command -v apt-get &> /dev/null; then
+    PKG_MGR="apt"
+elif command -v dnf &> /dev/null; then
+    PKG_MGR="dnf"
+elif command -v pacman &> /dev/null; then
+    PKG_MGR="pacman"
+fi
+
+# ===== 2. Verifica dipendenze =====
+echo "==> Verifico le dipendenze di sistema..."
+MISSING=""
+
+# notify-send (libnotify-bin)
+if ! command -v notify-send &> /dev/null; then
+    MISSING="$MISSING libnotify-bin"
+fi
+
+# Tray icon: su GNOME serve l'estensione appindicator
+if [ -n "$XDG_CURRENT_DESKTOP" ] && echo "$XDG_CURRENT_DESKTOP" | grep -qi "gnome"; then
+    # Controllo se l'estensione e' installata
+    if ! gnome-extensions list 2>/dev/null | grep -q "appindicator"; then
+        if [ "$PKG_MGR" = "apt" ]; then
+            MISSING="$MISSING gnome-shell-extension-appindicator"
+        elif [ "$PKG_MGR" = "dnf" ]; then
+            MISSING="$MISSING gnome-shell-extension-appindicator"
+        fi
+    fi
+fi
+
+if [ -n "$MISSING" ]; then
+    echo ""
+    echo "Dipendenze mancanti:$MISSING"
+    echo ""
+    case "$PKG_MGR" in
+        apt)
+            echo "Le installo? (potrebbe chiedere la password sudo)"
+            echo -n "[s/n]: "
+            read RISP
+            if [ "$RISP" = "s" ] || [ "$RISP" = "S" ]; then
+                sudo apt update
+                sudo apt install -y $MISSING
+                echo ""
+                echo "⚠️ Se hai installato l'estensione appindicator: fai logout/login"
+                echo "   per attivarla, altrimenti la tray icon non sara' visibile."
+            fi
+            ;;
+        dnf)
+            echo "Le installo? (potrebbe chiedere la password sudo)"
+            echo -n "[s/n]: "
+            read RISP
+            if [ "$RISP" = "s" ] || [ "$RISP" = "S" ]; then
+                sudo dnf install -y $MISSING
+            fi
+            ;;
+        *)
+            echo "Installa manualmente:$MISSING"
+            ;;
+    esac
+fi
+
+# ===== 3. Installazione app =====
+echo ""
+echo "==> Installo SmartComputerControl in $INSTALL_DIR..."
 
 mkdir -p "$INSTALL_DIR"
 cp -R "$SRC_DIR"/* "$INSTALL_DIR/"
 chmod +x "$INSTALL_DIR/SmartComputerControl"
 
-# Genera .desktop con path corretti
+# .desktop con path corretti
 mkdir -p "$APPLICATIONS_DIR"
 sed "s|__INSTALL_PATH__|$INSTALL_DIR|g" "$SRC_DIR/SmartComputerControl.desktop" > "$APPLICATIONS_DIR/SmartComputerControl.desktop"
 chmod +x "$APPLICATIONS_DIR/SmartComputerControl.desktop"
@@ -74,17 +143,40 @@ if command -v update-desktop-database &> /dev/null; then
     update-desktop-database "$APPLICATIONS_DIR" 2>/dev/null || true
 fi
 
-# Suggerimento per shutdown senza password
+# ===== 4. Regola sudoers per spegnimento senza password =====
 echo ""
+echo "==> Configurazione spegnimento senza password..."
+SUDOERS_FILE="/etc/sudoers.d/smartcomputercontrol"
+if [ ! -f "$SUDOERS_FILE" ]; then
+    echo "Per spegnere il PC senza richiedere la password, serve creare:"
+    echo "  $SUDOERS_FILE"
+    echo ""
+    echo "Lo configuro? (richiede password sudo)"
+    echo -n "[s/n]: "
+    read RISP
+    if [ "$RISP" = "s" ] || [ "$RISP" = "S" ]; then
+        echo "$USER ALL=(ALL) NOPASSWD: /sbin/shutdown, /usr/sbin/shutdown" | sudo tee "$SUDOERS_FILE" > /dev/null
+        sudo chmod 440 "$SUDOERS_FILE"
+        echo "✅ Configurato."
+    else
+        echo "⚠️ Senza questa regola, il sistema chiederà la password quando ricevi un comando di spegnimento."
+    fi
+fi
+
+# ===== 5. Fine =====
+echo ""
+echo "============================================================"
 echo "✅ Installazione completata!"
+echo "============================================================"
 echo ""
-echo "Per usare SmartComputerControl: cerca 'SmartComputerControl' nel menu applicazioni"
+echo "Per avviare: cerca 'SmartComputerControl' nel menu applicazioni."
 echo ""
-echo "⚠️  IMPORTANTE: per spegnere il PC senza password, esegui una volta:"
-echo "   echo \"\$USER ALL=(ALL) NOPASSWD: /sbin/shutdown, /usr/sbin/shutdown\" | sudo tee /etc/sudoers.d/scc"
-echo "   sudo chmod 440 /etc/sudoers.d/scc"
+echo "Per disinstallare:"
+echo "   rm -rf $INSTALL_DIR"
+echo "   rm $APPLICATIONS_DIR/SmartComputerControl.desktop"
+echo "   rm $AUTOSTART_DIR/SmartComputerControl.desktop  # se configurato"
+echo "   sudo rm $SUDOERS_FILE  # opzionale"
 echo ""
-echo "Per disinstallare: rm -rf $INSTALL_DIR e rimuovi $APPLICATIONS_DIR/SmartComputerControl.desktop"
 EOF
 
 chmod +x "$PUBLISH_DIR/install.sh"
