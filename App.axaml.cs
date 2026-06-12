@@ -101,22 +101,24 @@ public partial class App : Application
 
     private void ShowMainWindow()
     {
-        if (_mainWindow == null || !_mainWindow.IsVisible)
-        {
-            _mainWindow = new MainWindow();
-            // Quando la finestra viene chiusa con la X, non terminare l'app;
-            // si limita a nascondersi.
-            _mainWindow.Closing += (s, e) =>
-            {
-                e.Cancel = true;
-                _mainWindow!.Hide();
-            };
-            _mainWindow.Show();
-        }
-        else
+        // Se la finestra esiste gia' (e' aperta), portala in primo piano
+        if (_mainWindow != null && _mainWindow.IsVisible)
         {
             _mainWindow.WindowState = Avalonia.Controls.WindowState.Normal;
             _mainWindow.Activate();
+            return;
         }
+
+        // Creo una nuova istanza ogni volta. Cosi':
+        // - Su Mac, quando l'utente chiude col pallino rosso la finestra
+        //   si distrugge davvero e il menu globale "Avalonia" sparisce,
+        //   non blocca il riavvio del sistema.
+        // - Le impostazioni sono comunque persistenti via ConfigService.
+        _mainWindow = new MainWindow();
+        _mainWindow.Closed += (s, e) =>
+        {
+            _mainWindow = null;
+        };
+        _mainWindow.Show();
     }
 }
