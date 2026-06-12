@@ -1,8 +1,8 @@
 #!/bin/bash
 # =============================================================
 # build-mac-distributable.sh
-# Crea i pacchetti .zip per Mac (Apple Silicon + Intel) pronti
-# per essere caricati su un sito web. a
+# Crea i pacchetti .dmg per Mac (Apple Silicon + Intel) pronti
+# per essere caricati su un sito web.
 # =============================================================
 
 set -e
@@ -27,19 +27,32 @@ build_arch() {
     # Usa lo script esistente che crea il bundle
     ./build-mac-app.sh "$RID"
 
-    # Sposta il bundle nella cartella distrib con nome architettura
-    local ZIPNAME="${APP_NAME}-${VERSION}-mac-${LABEL}.zip"
-    local TMPDIR="$DIST_DIR/tmp-$LABEL"
-    mkdir -p "$TMPDIR"
-    cp -R "./dist/$APP_NAME.app" "$TMPDIR/"
+    local DMG_NAME="${APP_NAME}-${VERSION}-mac-${LABEL}.dmg"
+    local DMG_PATH="$DIST_DIR/$DMG_NAME"
+    local STAGING_DIR="$DIST_DIR/staging-$LABEL"
 
-    # Zip mantenendo i permessi/symlink del bundle
-    cd "$TMPDIR"
-    zip -ry "../$ZIPNAME" "$APP_NAME.app"
-    cd - > /dev/null
-    rm -rf "$TMPDIR"
+    # Prepara cartella temporanea con app + alias Applicazioni
+    mkdir -p "$STAGING_DIR"
+    cp -R "./dist/$APP_NAME.app" "$STAGING_DIR/"
+    # Crea alias simbolico verso /Applications dentro il DMG
+    ln -s /Applications "$STAGING_DIR/Applications"
 
-    echo "✅ Creato: $DIST_DIR/$ZIPNAME"
+    # Crea il DMG
+    # -volname: nome del volume che apparira' quando l'utente fa doppio click
+    # -srcfolder: contenuto da mettere nel DMG
+    # -ov: overwrite se esiste gia'
+    # -format UDZO: compressione standard (zlib)
+    echo "→ Creazione DMG..."
+    hdiutil create \
+        -volname "$APP_NAME" \
+        -srcfolder "$STAGING_DIR" \
+        -ov \
+        -format UDZO \
+        "$DMG_PATH" > /dev/null
+
+    rm -rf "$STAGING_DIR"
+
+    echo "✅ Creato: $DMG_PATH"
 }
 
 # Build per Apple Silicon (M1/M2/M3/M4)
@@ -58,5 +71,5 @@ ls -lh "$DIST_DIR"
 echo "============================================================"
 echo ""
 echo "Puoi caricare questi file sul tuo sito web:"
-echo "  - SmartComputerControl-${VERSION}-mac-arm64.zip → per Mac Apple Silicon (M1+)"
-echo "  - SmartComputerControl-${VERSION}-mac-intel.zip → per Mac Intel"
+echo "  - SmartComputerControl-${VERSION}-mac-arm64.dmg → per Mac Apple Silicon (M1+)"
+echo "  - SmartComputerControl-${VERSION}-mac-intel.dmg → per Mac Intel"
