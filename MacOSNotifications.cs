@@ -87,27 +87,18 @@ public static class MacOSNotifications
             dlopen("/System/Library/Frameworks/AppKit.framework/AppKit", RTLD_NOW);
 
             var nsAppClass = objc_getClass("NSApplication");
-            Console.WriteLine($"[Cocoa] NSApplication class: {nsAppClass}");
             if (nsAppClass == IntPtr.Zero) return;
 
             var sharedAppSel = sel_registerName("sharedApplication");
             var nsApp = objc_msgSend(nsAppClass, sharedAppSel);
-            Console.WriteLine($"[Cocoa] sharedApplication: {nsApp}");
             if (nsApp == IntPtr.Zero) return;
 
-            // Leggi la policy attuale
-            var getPolicySel = sel_registerName("activationPolicy");
-            var currentPolicy = objc_msgSend(nsApp, getPolicySel);
-            Console.WriteLine($"[Cocoa] activationPolicy attuale: {currentPolicy}");
-
-            // Imposta accessory = 1
+            // NSApplicationActivationPolicyAccessory = 1
+            //   0 = Regular (icona Dock + menu globale)
+            //   1 = Accessory (no Cmd+Tab, no menu globale, no pallino sotto Dock)
+            //   2 = Prohibited
             var setPolicySel = sel_registerName("setActivationPolicy:");
             objc_msgSend_long(nsApp, setPolicySel, 1);
-            Console.WriteLine($"[Cocoa] setActivationPolicy(1) chiamata");
-
-            // Rileggi per verifica
-            var newPolicy = objc_msgSend(nsApp, getPolicySel);
-            Console.WriteLine($"[Cocoa] activationPolicy DOPO: {newPolicy}");
         }
         catch (Exception ex)
         {
