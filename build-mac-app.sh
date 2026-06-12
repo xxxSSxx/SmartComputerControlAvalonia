@@ -30,6 +30,8 @@ mkdir -p "$APP_DIR/Contents/Resources"
 cp Info.plist "$APP_DIR/Contents/Info.plist"
 cp Assets/scc-icon.icns "$APP_DIR/Contents/Resources/scc-icon.icns"
 cp -R "$OUTPUT_DIR/publish-tmp/"* "$APP_DIR/Contents/MacOS/"
+# Rimuove i file di debug (PDB) che non servono al runtime
+find "$APP_DIR/Contents/MacOS" -name "*.pdb" -delete
 chmod +x "$APP_DIR/Contents/MacOS/$APP_NAME"
 
 rm -rf "$OUTPUT_DIR/publish-tmp"
