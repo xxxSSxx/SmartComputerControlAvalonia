@@ -140,11 +140,11 @@ public class NotificationService : IDisposable
                 UseShellExecute = false,
                 CreateNoWindow = true
             };
-            // NB: non passiamo --app-name perche' Ubuntu 26.04+ con Wayland
-            // filtra le notifiche di "app-name" non registrate come .desktop
-            // valida, e cosi' non vengono mai mostrate (ne' nello storico).
-            // Senza --app-name la notifica appare e si comporta come
-            // "applicazione generica" dal punto di vista di GNOME.
+            // NB: usiamo "Smart Computer Control" con gli spazi (non
+            // "SmartComputerControl" CamelCase): su Ubuntu 26.04 + Wayland
+            // il notification daemon filtra silenziosamente i nomi CamelCase
+            // con 3+ maiuscole consecutive di parola. Con gli spazi appare.
+            psi.ArgumentList.Add("--app-name=Smart Computer Control");
             if (iconPath != null)
             {
                 psi.ArgumentList.Add($"--icon={iconPath}");
