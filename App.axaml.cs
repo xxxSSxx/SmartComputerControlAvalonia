@@ -33,6 +33,17 @@ public partial class App : Application
         Watcher = new WatcherService(Config, Shutdown, Notifications);
         Autostart = new AutostartService();
 
+        // Su macOS: nascondi l'icona dal Dock con setActivationPolicy(.accessory).
+        // IMPORTANTE: deve essere chiamato DOPO che Avalonia ha inizializzato NSApp,
+        // altrimenti viene sovrascritto. Usiamo Dispatcher.Post per metterla in coda.
+        if (OperatingSystem.IsMacOS())
+        {
+            Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+            {
+                MacOSNotifications.SetAccessoryActivationPolicy();
+            }, Avalonia.Threading.DispatcherPriority.Background);
+        }
+
         // Inizializza notifiche (e tray icon nativa su Windows)
         Notifications.Initialize(
             onOpenSettings: ShowMainWindow,
