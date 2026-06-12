@@ -2,7 +2,7 @@
 # =============================================================
 # build-mac-distributable.sh
 # Crea i pacchetti .zip per Mac (Apple Silicon + Intel) pronti
-# per essere caricati su un sito web.
+# per essere caricati su un sito web. a
 # =============================================================
 
 set -e
