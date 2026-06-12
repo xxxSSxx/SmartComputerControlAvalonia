@@ -48,4 +48,9 @@
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
   </ItemGroup>
 
+  <!-- NAudio: solo per Windows (mute/volume API) -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
+    <PackageReference Include="NAudio" Version="2.2.1" />
+  </ItemGroup>
+
 </Project>

@@ -10,27 +10,36 @@ public partial class ShutdownConfirmWindow : Window
     private DispatcherTimer? _timer;
     private int _secondsLeft;
     private readonly int _totalSeconds;
+    private readonly string _actionName;
     private bool _decisionTaken;
 
     /// <summary>
     /// Risultato del dialog:
-    ///   true  → procedi con lo spegnimento (timer scaduto o pulsante "Spegni subito")
+    ///   true  → procedi (timer scaduto o pulsante "Esegui subito")
     ///   false → annulla (pulsante "Annulla" o finestra chiusa con X)
     /// </summary>
     public bool ShouldShutdown { get; private set; }
 
-    public ShutdownConfirmWindow() : this(30) { }
+    public ShutdownConfirmWindow() : this(30, null) { }
 
-    public ShutdownConfirmWindow(int secondsBeforeShutdown)
+    public ShutdownConfirmWindow(int secondsBeforeShutdown, Services.ParsedCommand? cmd = null)
     {
         InitializeComponent();
         _totalSeconds = secondsBeforeShutdown;
         _secondsLeft = secondsBeforeShutdown;
+        _actionName = cmd?.DisplayName ?? "Spegnimento";
+
+        // Aggiorna le scritte del dialog in base al comando
+        this.Title = $"{_actionName} in arrivo";
+        if (this.FindControl<TextBlock>("HeaderTitle") is { } h)
+            h.Text = _actionName;
+        if (this.FindControl<Button>("ShutdownNowButton") is { } b)
+            b.Content = cmd?.Type == Services.CommandType.Restart ? "Riavvia subito" : "Spegni subito";
+
         CountdownBar.Maximum = _totalSeconds;
         CountdownBar.Value = _secondsLeft;
         UpdateText();
 
-        // Quando la finestra viene chiusa con la X = annulla
         Closing += (s, e) =>
         {
             if (!_decisionTaken)
@@ -77,12 +86,13 @@ public partial class ShutdownConfirmWindow : Window
 
     private void UpdateText()
     {
+        var verb = _actionName.ToLowerInvariant();
         if (_secondsLeft == 1)
-            CountdownText.Text = "Il computer si spegnerà tra 1 secondo";
+            CountdownText.Text = $"{_actionName} tra 1 secondo";
         else if (_secondsLeft <= 0)
-            CountdownText.Text = "Spegnimento in corso...";
+            CountdownText.Text = $"{_actionName} in corso...";
         else
-            CountdownText.Text = $"Il computer si spegnerà tra {_secondsLeft} secondi";
+            CountdownText.Text = $"{_actionName} tra {_secondsLeft} secondi";
     }
 
     private void OnCancelClicked(object? sender, RoutedEventArgs e)

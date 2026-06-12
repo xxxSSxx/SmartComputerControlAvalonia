@@ -8,7 +8,7 @@ namespace SmartComputerControlAvalonia.Services;
 public class WatcherService
 {
     private readonly ConfigService _config;
-    private readonly ShutdownService _shutdown;
+    private readonly CommandService _commands;
     private readonly NotificationService _notifications;
     private FileSystemWatcher? _watcher;
     private System.Timers.Timer? _pollTimer;
@@ -17,10 +17,10 @@ public class WatcherService
     private bool _shutdownPending;
     private readonly HashSet<string> _filesInProgress = new(StringComparer.OrdinalIgnoreCase);
 
-    public WatcherService(ConfigService config, ShutdownService shutdown, NotificationService notifications)
+    public WatcherService(ConfigService config, CommandService commands, NotificationService notifications)
     {
         _config = config;
-        _shutdown = shutdown;
+        _commands = commands;
         _notifications = notifications;
     }
 
@@ -134,8 +134,9 @@ public class WatcherService
     {
         if (!File.Exists(filex)) return;
 
-        // NUOVA LOGICA: il target di spegnimento viene dal NOME del file
-        // (senza estensione), non dal contenuto.
+        // Il NOME del file (senza estensione) determina IL TARGET (quale PC esegue).
+        // Il CONTENUTO del file determina IL COMANDO da eseguire.
+        // Contenuto vuoto = shutdown (retrocompatibilita').
         var target = Path.GetFileNameWithoutExtension(filex);
         var myName = _config.ComputerName?.Trim() ?? "";
 
@@ -145,64 +146,82 @@ public class WatcherService
             (!string.IsNullOrEmpty(myName) &&
              string.Equals(target, myName, StringComparison.OrdinalIgnoreCase));
 
-        if (!match)
+        if (!match) return;
+
+        // Leggi il contenuto del file (con un piccolo retry, perche'
+        // a volte il file e' ancora in scrittura quando arriva l'evento)
+        string contenuto = "";
+        for (int i = 0; i < 5; i++)
         {
+            try
+            {
+                contenuto = File.ReadAllText(filex);
+                break;
+            }
+            catch
+            {
+                System.Threading.Thread.Sleep(100);
+            }
+        }
+
+        var cmd = CommandService.Parse(contenuto);
+
+        if (cmd.Type == CommandType.Unknown)
+        {
+            _notifications.Show("SmartComputerControl",
+                $"Comando non riconosciuto in '{Path.GetFileName(filex)}'");
+            try { File.Delete(filex); } catch { }
             return;
         }
 
-        // Notifico che ho intercettato il comando
         _notifications.Show("SmartComputerControl",
-            $"Comando ricevuto per '{target}'. Verifico...");
+            $"Comando '{cmd.DisplayName}' ricevuto per '{target}'");
 
         try
         {
             var fileWriteDate = File.GetLastWriteTime(filex);
-            if (_avvio < fileWriteDate)
+            if (_avvio >= fileWriteDate)
             {
-                // Cancella subito il file per evitare ri-attivazioni
-                try { File.Delete(filex); } catch { }
-
-                // Da qui in poi, fino a chiusura del dialog, blocchiamo
-                // altri possibili match (dialog non duplicato).
-                lock (_lock) { _shutdownPending = true; }
-
-                if (_config.MostraConferma)
-                {
-                    Avalonia.Threading.Dispatcher.UIThread.Post(() =>
-                    {
-                        var dlg = new Views.ShutdownConfirmWindow(_config.SecondiConferma);
-                        dlg.Closed += (s, e) =>
-                        {
-                            if (dlg.ShouldShutdown)
-                            {
-                                _notifications.Show("SmartComputerControl",
-                                    "Spegnimento in corso...");
-                                _shutdown.Spegni(filex);
-                            }
-                            else
-                            {
-                                _notifications.Show("SmartComputerControl",
-                                    "Spegnimento annullato dall'utente.");
-                                // L'utente ha annullato: rimuoviamo il pending
-                                // cosi' un futuro file puo' attivare un nuovo dialog.
-                                lock (_lock) { _shutdownPending = false; }
-                            }
-                        };
-                        dlg.Show();
-                    });
-                }
-                else
-                {
-                    _notifications.Show("SmartComputerControl",
-                        "Spegnimento in corso...");
-                    _shutdown.Spegni(filex);
-                }
-            }
-            else
-            {
+                // File vecchio, lo ignoriamo
                 File.Delete(filex);
                 _notifications.Show("SmartComputerControl",
                     "Comando obsoleto ignorato (file precedente all'avvio).");
+                return;
+            }
+
+            // Cancella subito il file per evitare ri-attivazioni
+            try { File.Delete(filex); } catch { }
+
+            // Comandi distruttivi (shutdown/restart): dialog di conferma
+            if (cmd.RequiresConfirmation && _config.MostraConferma)
+            {
+                lock (_lock) { _shutdownPending = true; }
+
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    var dlg = new Views.ShutdownConfirmWindow(_config.SecondiConferma, cmd);
+                    dlg.Closed += (s, e) =>
+                    {
+                        if (dlg.ShouldShutdown)
+                        {
+                            _notifications.Show("SmartComputerControl",
+                                $"{cmd.DisplayName} in corso...");
+                            _commands.Execute(cmd);
+                        }
+                        else
+                        {
+                            _notifications.Show("SmartComputerControl",
+                                $"{cmd.DisplayName} annullato dall'utente.");
+                            lock (_lock) { _shutdownPending = false; }
+                        }
+                    };
+                    dlg.Show();
+                });
+            }
+            else
+            {
+                // Comandi non distruttivi: esegui subito
+                _commands.Execute(cmd);
             }
         }
         catch { }

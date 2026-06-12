@@ -13,7 +13,7 @@ public partial class App : Application
     // Servizi condivisi (singleton "casalingo", senza DI framework)
     public static ConfigService Config { get; private set; } = null!;
     public static WatcherService Watcher { get; private set; } = null!;
-    public static ShutdownService Shutdown { get; private set; } = null!;
+    public static CommandService Commands { get; private set; } = null!;
     public static AutostartService Autostart { get; private set; } = null!;
     public static NotificationService Notifications { get; private set; } = null!;
 
@@ -28,9 +28,9 @@ public partial class App : Application
     {
         // Inizializza i servizi
         Config = new ConfigService();
-        Shutdown = new ShutdownService();
+        Commands = new CommandService();
         Notifications = new NotificationService();
-        Watcher = new WatcherService(Config, Shutdown, Notifications);
+        Watcher = new WatcherService(Config, Commands, Notifications);
         Autostart = new AutostartService();
 
         // Inizializza notifiche (e tray icon nativa su Windows)

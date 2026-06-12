@@ -86,7 +86,7 @@
                     Padding="12,10">
                 <TextBlock FontSize="12"
                            TextWrapping="Wrap"
-                           Text="IFTTT crea un file .txt nella cartella monitorata. Il nome del file (es. Win11.txt) determina quale PC si spegne. Usa 'all.txt' per spegnere tutti, oppure 'google.txt' se questo PC è predefinito." />
+                           Text="IFTTT crea un file .txt nella cartella monitorata. Il NOME del file determina quale PC esegue il comando (es. Win11.txt → Win11). Il CONTENUTO del file determina il comando: shutdown (o vuoto), restart, sleep, lock, mute, volume:50. Usa 'all.txt' per tutti, 'google.txt' per i PC predefiniti." />
             </Border>
 
             <TextBlock x:Name="StatusLabel"
