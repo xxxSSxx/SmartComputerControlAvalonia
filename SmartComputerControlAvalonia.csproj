@@ -38,15 +38,21 @@
   <!-- File fisicamente copiati nell'output (in aggiunta al fatto che sono embedded).
        Servono perchE' alcuni componenti nativi (notify-send su Linux, NotifyIcon WinForms su Windows)
        leggono il file dal disco e non dalla resource incorporata.
-       Uso Content invece di None per evitare conflitti con AvaloniaResource. -->
+       Uso Content invece di None per evitare conflitti con AvaloniaResource.
+       ExcludeFromSingleFile e' FONDAMENTALE: senza questo, con PublishSingleFile=true i file
+       vengono inglobati nell'exe e NON copiati nella cartella Assets/ accanto al .exe. -->
   <ItemGroup>
     <Content Include="Assets\scc-icon.ico" CopyToOutputDirectory="PreserveNewest">
       <Link>Assets\scc-icon.ico</Link>
       <Visible>false</Visible>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
     <Content Include="Assets\scc-icon.png" CopyToOutputDirectory="PreserveNewest">
       <Link>Assets\scc-icon.png</Link>
       <Visible>false</Visible>
+      <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 
