@@ -30,19 +30,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <!-- Embedded Avalonia resources (per Icon="/Assets/..." in XAML, es. TrayIcon).
+         I file vengono compilati dentro l'eseguibile come risorse incorporate. -->
     <AvaloniaResource Include="Assets/**" />
-    <!-- Copia anche il file .ico fisicamente nell'output, serve per NotifyIcon WinForms -->
-    <None Include="Assets/scc-icon.ico" CopyToOutputDirectory="PreserveNewest">
+  </ItemGroup>
+
+  <!-- File fisicamente copiati nell'output (in aggiunta al fatto che sono embedded).
+       Servono perchE' alcuni componenti nativi (notify-send su Linux, NotifyIcon WinForms su Windows)
+       leggono il file dal disco e non dalla resource incorporata.
+       Uso Content invece di None per evitare conflitti con AvaloniaResource. -->
+  <ItemGroup>
+    <Content Include="Assets\scc-icon.ico" CopyToOutputDirectory="PreserveNewest">
       <Link>Assets\scc-icon.ico</Link>
-    </None>
-    <!-- Copia anche il .png fisicamente, serve per notify-send su Linux -->
-    <None Include="Assets/scc-icon.png" CopyToOutputDirectory="PreserveNewest">
+      <Visible>false</Visible>
+    </Content>
+    <Content Include="Assets\scc-icon.png" CopyToOutputDirectory="PreserveNewest">
       <Link>Assets\scc-icon.png</Link>
-    </None>
-    <!-- Copia anche il file .png fisicamente nell'output, serve per notify-send su Linux -->
-    <None Include="Assets/scc-icon.png" CopyToOutputDirectory="PreserveNewest">
-      <Link>Assets\scc-icon.png</Link>
-    </None>
+      <Visible>false</Visible>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
