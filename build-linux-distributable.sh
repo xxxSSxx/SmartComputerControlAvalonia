@@ -82,6 +82,21 @@ if ! command -v notify-send &> /dev/null; then
     MISSING="$MISSING libnotify-bin"
 fi
 
+# screenshot (gnome-screenshot)
+if ! command -v gnome-screenshot &> /dev/null; then
+    MISSING="$MISSING gnome-screenshot"
+fi
+
+# say (speech-dispatcher fornisce spd-say)
+if ! command -v spd-say &> /dev/null; then
+    MISSING="$MISSING speech-dispatcher"
+fi
+
+# eject (di solito gia' presente)
+if ! command -v eject &> /dev/null; then
+    MISSING="$MISSING eject"
+fi
+
 # Tray icon: su GNOME serve l'estensione appindicator
 if [ -n "$XDG_CURRENT_DESKTOP" ] && echo "$XDG_CURRENT_DESKTOP" | grep -qi "gnome"; then
     # Controllo se l'estensione e' installata

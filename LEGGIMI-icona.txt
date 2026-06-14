@@ -1,6 +1,0 @@
-Sostituisci questo file con una vera icona .ico chiamata "avalonia-logo.ico".
-Il template Avalonia di solito ne fornisce una di default; se non ce l'hai,
-puoi mettere qualsiasi .ico (o .png se cambi l'estensione nel App.axaml).
-
-Per iniziare velocemente, puoi scaricare l'icona di default Avalonia da:
-https://raw.githubusercontent.com/AvaloniaUI/Avalonia/master/samples/ControlCatalog/Assets/avalonia-logo.ico
